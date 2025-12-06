@@ -1,0 +1,27 @@
+.text-type {
+  display: inline-block;
+}
+
+.text-type__content {
+  display: inline;
+}
+
+.text-type__cursor {
+  display: inline-block;
+  margin-left: 2px;
+  animation: blink 1s infinite;
+}
+
+.text-type__cursor--hidden {
+  opacity: 0;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+

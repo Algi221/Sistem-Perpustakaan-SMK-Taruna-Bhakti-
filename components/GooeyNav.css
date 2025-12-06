@@ -1,0 +1,105 @@
+.gooey-nav-container {
+  position: relative;
+  display: inline-block;
+}
+
+.gooey-nav-container nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.gooey-nav-container nav ul li {
+  position: relative;
+}
+
+.gooey-nav-container nav ul li a {
+  display: block;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  transition: color 0.3s;
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.gooey-nav-container .effect {
+  position: absolute;
+  border-radius: 0.5rem;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.gooey-nav-container .effect.filter {
+  background: rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.gooey-nav-container .effect.text {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.gooey-nav-container .effect.text.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gooey-nav-container .particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(var(--scale)) rotate(var(--rotate));
+  background: var(--color);
+  animation: particle-animation var(--time) ease-out forwards;
+  pointer-events: none;
+}
+
+.gooey-nav-container .particle .point {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.gooey-nav-container .particle.active {
+  animation-play-state: running;
+}
+
+@keyframes particle-animation {
+  0% {
+    transform: translate(-50%, -50%) translate(var(--start-x), var(--start-y)) scale(var(--scale)) rotate(var(--rotate));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--end-x), var(--end-y)) scale(0) rotate(calc(var(--rotate) + 360deg));
+    opacity: 0;
+  }
+}
+
+:root {
+  --color-1: #3b82f6;
+  --color-2: #6366f1;
+  --color-3: #8b5cf6;
+  --color-4: #ec4899;
+}
+
