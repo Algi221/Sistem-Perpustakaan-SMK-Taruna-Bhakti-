@@ -16,6 +16,7 @@ Sistem manajemen perpustakaan modern dengan Next.js, NextAuth, dan MySQL.
   - History peminjaman (buku yang sudah dikembalikan)
   - Ubah password
   - Ubah email
+- **Pembayaran Denda** - Bayar denda keterlambatan melalui Xendit (Credit Card, Virtual Account, E-Wallet, QRIS)
 
 ### Untuk Petugas
 - Login sebagai petugas
@@ -37,6 +38,7 @@ Sistem manajemen perpustakaan modern dengan Next.js, NextAuth, dan MySQL.
 - **MySQL** - Database
 - **Tailwind CSS** - Styling
 - **bcryptjs** - Password hashing
+- **Xendit** - Payment Gateway untuk pembayaran denda
 
 ## Instalasi
 
@@ -100,6 +102,11 @@ DB_NAME=perpustakaan
 # NextAuth Configuration
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key-here-change-in-production
+
+# Xendit Configuration (untuk pembayaran denda)
+XENDIT_SECRET_KEY=xnd_development_xxxxxxxxxxxxx
+XENDIT_IS_PRODUCTION=false
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
 **Penting:** Ganti `NEXTAUTH_SECRET` dengan secret key yang aman. Anda bisa generate dengan:
@@ -107,7 +114,25 @@ NEXTAUTH_SECRET=your-secret-key-here-change-in-production
 openssl rand -base64 32
 ```
 
-### 5. Jalankan Development Server
+### 5. Setup Xendit (Pembayaran Denda)
+
+Sistem ini menggunakan **Xendit** sebagai payment gateway untuk pembayaran denda. Untuk setup lengkap, lihat file [XENDIT_SETUP.md](./XENDIT_SETUP.md).
+
+**Quick Setup:**
+1. Daftar akun di https://dashboard.xendit.co/register
+2. Dapatkan API Key dari dashboard (Settings → API Keys)
+3. Tambahkan ke `.env.local`:
+   ```env
+   XENDIT_SECRET_KEY=xnd_development_xxxxxxxxxxxxx
+   XENDIT_IS_PRODUCTION=false
+   ```
+
+**Catatan:**
+- Untuk testing, gunakan key yang dimulai dengan `xnd_development_`
+- Untuk production, gunakan key yang dimulai dengan `xnd_production_`
+- Lihat dokumentasi lengkap di [XENDIT_SETUP.md](./XENDIT_SETUP.md)
+
+### 6. Jalankan Development Server
 
 ```bash
 npm run dev
@@ -461,6 +486,8 @@ perpustakaan/
 
 5. **Environment Variables**: Jangan commit file `.env.local` ke repository.
 
+6. **Payment Integration**: Sistem menggunakan Xendit untuk pembayaran denda. Pastikan API key sudah di-set di `.env.local`. Lihat [XENDIT_SETUP.md](./XENDIT_SETUP.md) untuk setup lengkap.
+
 ## Troubleshooting
 
 ### Error: "Cannot connect to database"
@@ -473,6 +500,60 @@ perpustakaan/
 
 ### Error: "Table doesn't exist"
 - Pastikan sudah import file `database/schema.sql`
+
+### Error: "Xendit payment failed"
+- Pastikan `XENDIT_SECRET_KEY` sudah di-set di `.env.local`
+- Pastikan menggunakan key yang sesuai (Sandbox vs Production)
+- Cek dokumentasi di [XENDIT_SETUP.md](./XENDIT_SETUP.md)
+
+## Push ke GitHub
+
+Jika project sudah pernah di-push sebelumnya dan ingin push perubahan terbaru:
+
+### 1. Cek Status Git
+```bash
+git status
+```
+
+### 2. Tambahkan File yang Diubah
+```bash
+# Tambahkan semua file yang diubah
+git add .
+
+# Atau tambahkan file spesifik
+git add README.md
+```
+
+### 3. Commit Perubahan
+```bash
+git commit -m "Update README: tambah dokumentasi Xendit"
+```
+
+### 4. Push ke GitHub
+```bash
+# Push ke branch utama (biasanya main atau master)
+git push origin main
+
+# Atau jika branch Anda berbeda
+git push origin master
+```
+
+### 5. Jika Ada Konflik
+Jika ada perubahan di GitHub yang belum ada di local:
+```bash
+# Pull dulu perubahan terbaru
+git pull origin main
+
+# Resolve konflik jika ada, lalu:
+git add .
+git commit -m "Merge changes"
+git push origin main
+```
+
+### Tips
+- Pastikan file `.env.local` **tidak** di-commit (sudah ada di `.gitignore`)
+- Jangan commit file sensitif seperti API keys
+- Gunakan commit message yang jelas dan deskriptif
 
 ## License
 
