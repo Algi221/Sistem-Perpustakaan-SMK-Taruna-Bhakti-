@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import pool from '@/lib/db';
+import { bookSuggestionSchema, validationErrorResponse } from '@/lib/validations';
 
 export async function POST(request) {
   try {
@@ -14,14 +15,18 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { title, author, isbn, genre, reason } = body;
-
-    if (!title || !author || !genre || !reason) {
+    
+    // Validate request body dengan Zod
+    const validationResult = bookSuggestionSchema.safeParse(body);
+    
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Semua field wajib diisi' },
+        validationErrorResponse(validationResult.error),
         { status: 400 }
       );
     }
+
+    const { title, author, isbn, genre, reason } = validationResult.data;
 
     // Simpan usulan buku (bisa dibuat tabel book_suggestions jika diperlukan)
     // Untuk sekarang, kita hanya return success

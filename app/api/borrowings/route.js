@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import pool from '@/lib/db';
+import { createBorrowingSchema, validationErrorResponse } from '@/lib/validations';
 
 export async function GET(request) {
   try {
@@ -74,23 +75,19 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { bookId, durationDays } = body;
-
-    if (!bookId) {
+    
+    // Validate request body dengan Zod
+    const validationResult = createBorrowingSchema.safeParse(body);
+    
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Book ID diperlukan' },
+        validationErrorResponse(validationResult.error),
         { status: 400 }
       );
     }
 
-    // Validasi durasi pinjam: minimal 14 hari (2 minggu), maksimal 30 hari (1 bulan)
-    const days = parseInt(durationDays) || 14;
-    if (days < 14 || days > 30) {
-      return NextResponse.json(
-        { error: 'Durasi pinjam harus antara 14 hari (2 minggu) sampai 30 hari (1 bulan)' },
-        { status: 400 }
-      );
-    }
+    const { bookId, durationDays } = validationResult.data;
+    const days = durationDays;
 
     // Check if book exists and is available
     const [books] = await pool.execute(

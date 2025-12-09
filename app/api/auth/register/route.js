@@ -1,18 +1,23 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { registerSchema, validationErrorResponse } from '@/lib/validations';
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, email, password, role, phone, address } = body;
-
-    if (!name || !email || !password) {
+    
+    // Validate request body dengan Zod
+    const validationResult = registerSchema.safeParse(body);
+    
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Nama, email, dan password wajib diisi' },
+        validationErrorResponse(validationResult.error),
         { status: 400 }
       );
     }
+
+    const { name, email, password, role, phone, address } = validationResult.data;
 
     // Check if email already exists
     const [existing] = await pool.execute(
@@ -33,7 +38,7 @@ export async function POST(request) {
     // Insert new user
     await pool.execute(
       'INSERT INTO users (name, email, password, role, phone, address) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, email, hashedPassword, role || 'siswa', phone || null, address || null]
+      [name, email, hashedPassword, role, phone || null, address || null]
     );
 
     return NextResponse.json(

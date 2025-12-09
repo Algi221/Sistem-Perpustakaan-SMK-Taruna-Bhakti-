@@ -1,7 +1,7 @@
 'use client';
 
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './Galaxy.css';
 
 const vertexShader = `
@@ -181,6 +181,7 @@ export default function Galaxy({
   ...rest
 }) {
   const ctnDom = useRef(null);
+  const [webglAvailable, setWebglAvailable] = useState(true);
   const targetMousePos = useRef({ x: 0.5, y: 0.5 });
   const smoothMousePos = useRef({ x: 0.5, y: 0.5 });
   const targetMouseActive = useRef(0.0);
@@ -190,11 +191,39 @@ export default function Galaxy({
     if (!ctnDom.current) return;
 
     const ctn = ctnDom.current;
-    const renderer = new Renderer({
-      alpha: transparent,
-      premultipliedAlpha: false
-    });
-    const gl = renderer.gl;
+    
+    // Check if WebGL is supported before creating renderer
+    const canvas = document.createElement('canvas');
+    const glContext = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    
+    if (!glContext) {
+      console.warn('WebGL not supported in this browser, using fallback');
+      setWebglAvailable(false);
+      return;
+    }
+    
+    // Check if WebGL is supported
+    let renderer;
+    let gl;
+    
+    try {
+      renderer = new Renderer({
+        alpha: transparent,
+        premultipliedAlpha: false
+      });
+      gl = renderer.gl;
+      
+      // Check if WebGL context was created successfully
+      if (!gl) {
+        console.warn('WebGL context not available, Galaxy component disabled');
+        setWebglAvailable(false);
+        return;
+      }
+    } catch (error) {
+      console.warn('Failed to create WebGL context, Galaxy component disabled:', error);
+      setWebglAvailable(false);
+      return;
+    }
 
     if (transparent) {
       gl.enable(gl.BLEND);
@@ -275,7 +304,11 @@ export default function Galaxy({
     }
 
     animateId = requestAnimationFrame(update);
-    ctn.appendChild(gl.canvas);
+    
+    // Only append canvas if renderer and gl are valid
+    if (renderer && gl && gl.canvas) {
+      ctn.appendChild(gl.canvas);
+    }
 
     function handleMouseMove(e) {
       const rect = ctn.getBoundingClientRect();
@@ -295,16 +328,24 @@ export default function Galaxy({
     }
 
     return () => {
-      cancelAnimationFrame(animateId);
+      if (animateId) {
+        cancelAnimationFrame(animateId);
+      }
       window.removeEventListener('resize', resize);
       if (mouseInteraction) {
         ctn.removeEventListener('mousemove', handleMouseMove);
         ctn.removeEventListener('mouseleave', handleMouseLeave);
       }
-      if (ctn.contains(gl.canvas)) {
+      if (gl && gl.canvas && ctn && ctn.contains(gl.canvas)) {
         ctn.removeChild(gl.canvas);
       }
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      if (gl) {
+        try {
+          gl.getExtension('WEBGL_lose_context')?.loseContext();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
     };
   }, [
     focal,
@@ -325,5 +366,19 @@ export default function Galaxy({
     transparent
   ]);
 
-  return <div ref={ctnDom} className="galaxy-container" {...rest} />;
+  return (
+    <div ref={ctnDom} className="galaxy-container" {...rest}>
+      {!webglAvailable && (
+        <div 
+          className="galaxy-fallback"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+            animation: 'pulse 4s ease-in-out infinite'
+          }}
+        />
+      )}
+    </div>
+  );
 }

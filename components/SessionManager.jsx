@@ -11,7 +11,14 @@ export default function SessionManager() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const timeoutRef = useRef(null);
-  const lastActivityRef = useRef(Date.now());
+  const lastActivityRef = useRef(0);
+  
+  // Initialize lastActivityRef in useEffect to avoid calling Date.now() during render
+  useEffect(() => {
+    if (typeof window !== 'undefined' && lastActivityRef.current === 0) {
+      lastActivityRef.current = Date.now();
+    }
+  }, []);
 
   // Reset inactivity timer
   const resetInactivityTimer = () => {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import pool from '@/lib/db';
+import { createReviewSchema, validationErrorResponse } from '@/lib/validations';
 
 // GET reviews for a book
 export async function GET(request) {
@@ -72,22 +73,18 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { bookId, borrowingId, rating, review } = body;
-
-    // Validation
-    if (!bookId || !borrowingId || !rating) {
+    
+    // Validate request body dengan Zod
+    const validationResult = createReviewSchema.safeParse(body);
+    
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'bookId, borrowingId, dan rating wajib diisi' },
+        validationErrorResponse(validationResult.error),
         { status: 400 }
       );
     }
 
-    if (rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { error: 'Rating harus antara 1-5' },
-        { status: 400 }
-      );
-    }
+    const { bookId, borrowingId, rating, review } = validationResult.data;
 
     // Check if borrowing exists and user owns it
     const [borrowings] = await pool.execute(

@@ -15,17 +15,17 @@ export default function RightSidebar() {
   const t = getAllTranslations(language);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Jangan tampilkan sidebar di landing page
-  if (pathname === '/') {
-    return null;
-  }
-
   useEffect(() => {
     const search = searchParams.get('search');
     if (search) {
       setSearchQuery(search);
     }
   }, [searchParams]);
+
+  // Jangan tampilkan sidebar di landing page
+  if (pathname === '/') {
+    return null;
+  }
 
   const handleSearch = (e) => {
     e.preventDefault();

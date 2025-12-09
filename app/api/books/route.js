@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import pool from '@/lib/db';
 import { enrichBooksWithAvailableStock } from '@/lib/bookUtils';
+import { createBookSchema, validationErrorResponse } from '@/lib/validations';
 
 export async function GET(request) {
   try {
@@ -49,6 +50,17 @@ export async function POST(request) {
     }
 
     const body = await request.json();
+    
+    // Validate request body dengan Zod
+    const validationResult = createBookSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return NextResponse.json(
+        validationErrorResponse(validationResult.error),
+        { status: 400 }
+      );
+    }
+
     const {
       title,
       author,
@@ -59,14 +71,7 @@ export async function POST(request) {
       stock,
       published_year,
       publisher
-    } = body;
-
-    if (!title || !author || !genre) {
-      return NextResponse.json(
-        { error: 'Judul, penulis, dan genre wajib diisi' },
-        { status: 400 }
-      );
-    }
+    } = validationResult.data;
 
     const [result] = await pool.execute(
       `INSERT INTO books (title, author, isbn, genre, description, image_url, stock, available, published_year, publisher) 
@@ -78,8 +83,8 @@ export async function POST(request) {
         genre,
         description || null,
         image_url || null,
-        stock || 0,
-        stock || 0, // available equals stock for new books
+        stock,
+        stock, // available equals stock for new books
         published_year || null,
         publisher || null
       ]

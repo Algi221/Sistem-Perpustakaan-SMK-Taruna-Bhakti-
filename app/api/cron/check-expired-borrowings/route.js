@@ -9,7 +9,7 @@ import pool from '@/lib/db';
  * {
  *   "crons": [{
  *     "path": "/api/cron/check-expired-borrowings",
- *     "schedule": "*/5 * * * *"
+ *     "schedule": "*\/5 * * * *"
  *   }]
  * }
  */

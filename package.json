@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "setup-test-fine": "node database/setup-test-fine.js",
-    "migrate-password-reset": "node database/run-password-reset-migration.js"
+    "migrate-password-reset": "node database/run-password-reset-migration.js",
+    "validate-emails": "node database/validate-and-fix-emails.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -26,7 +27,8 @@
     "ogl": "^1.0.11",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",

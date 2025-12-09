@@ -16,12 +16,6 @@ export default function RecommendedBooks({ initialBooks, books }) {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  useEffect(() => {
-    // Fetch all books and genres when component mounts
-    fetchAllBooks();
-    fetchGenres();
-  }, []);
-
   const fetchAllBooks = async () => {
     try {
       const response = await fetch('/api/books');
@@ -44,6 +38,12 @@ export default function RecommendedBooks({ initialBooks, books }) {
       console.error('Error fetching genres:', error);
     }
   };
+
+  useEffect(() => {
+    // Fetch all books and genres when component mounts
+    fetchAllBooks();
+    fetchGenres();
+  }, []);
 
   useEffect(() => {
     if (selectedCategory === 'Direkomendasikan') {

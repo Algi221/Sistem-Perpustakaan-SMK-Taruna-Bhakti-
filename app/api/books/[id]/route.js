@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import pool from '@/lib/db';
+import { updateBookSchema, validationErrorResponse } from '@/lib/validations';
 
 export async function GET(request, { params }) {
   try {
@@ -40,17 +41,16 @@ export async function PUT(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
-    const {
-      title,
-      author,
-      isbn,
-      genre,
-      description,
-      image_url,
-      stock,
-      published_year,
-      publisher
-    } = body;
+    
+    // Validate request body dengan Zod
+    const validationResult = updateBookSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return NextResponse.json(
+        validationErrorResponse(validationResult.error),
+        { status: 400 }
+      );
+    }
 
     // Get current book
     const [books] = await pool.execute(
@@ -66,7 +66,22 @@ export async function PUT(request, { params }) {
     }
 
     const currentBook = books[0];
-    const newStock = stock || currentBook.stock;
+    const validatedData = validationResult.data;
+    
+    // Merge dengan data existing (hanya update field yang dikirim)
+    const updateData = {
+      title: validatedData.title ?? currentBook.title,
+      author: validatedData.author ?? currentBook.author,
+      isbn: validatedData.isbn !== undefined ? validatedData.isbn : currentBook.isbn,
+      genre: validatedData.genre ?? currentBook.genre,
+      description: validatedData.description !== undefined ? validatedData.description : currentBook.description,
+      image_url: validatedData.image_url !== undefined ? validatedData.image_url : currentBook.image_url,
+      stock: validatedData.stock !== undefined ? validatedData.stock : currentBook.stock,
+      published_year: validatedData.published_year !== undefined ? validatedData.published_year : currentBook.published_year,
+      publisher: validatedData.publisher !== undefined ? validatedData.publisher : currentBook.publisher,
+    };
+
+    const newStock = updateData.stock;
     const stockDifference = newStock - currentBook.stock;
     const newAvailable = Math.max(0, currentBook.available + stockDifference);
 
@@ -76,16 +91,16 @@ export async function PUT(request, { params }) {
            image_url = ?, stock = ?, available = ?, published_year = ?, publisher = ?
        WHERE id = ?`,
       [
-        title,
-        author,
-        isbn || null,
-        genre,
-        description || null,
-        image_url || null,
+        updateData.title,
+        updateData.author,
+        updateData.isbn || null,
+        updateData.genre,
+        updateData.description || null,
+        updateData.image_url || null,
         newStock,
         newAvailable,
-        published_year || null,
-        publisher || null,
+        updateData.published_year || null,
+        updateData.publisher || null,
         id
       ]
     );

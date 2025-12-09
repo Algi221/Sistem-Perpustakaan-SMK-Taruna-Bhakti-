@@ -7,17 +7,6 @@ const FontSizeContext = createContext();
 export function FontSizeProvider({ children }) {
   const [fontSize, setFontSize] = useState('medium');
 
-  useEffect(() => {
-    // Load font size from localStorage
-    const savedFontSize = localStorage.getItem('userFontSize');
-    if (savedFontSize) {
-      setFontSize(savedFontSize);
-      applyFontSize(savedFontSize);
-    } else {
-      applyFontSize('medium');
-    }
-  }, []);
-
   const applyFontSize = (size) => {
     const root = document.documentElement;
     const body = document.body;
@@ -40,6 +29,17 @@ export function FontSizeProvider({ children }) {
     };
     root.style.setProperty('--base-font-size', sizes[size] || sizes.medium);
   };
+
+  useEffect(() => {
+    // Load font size from localStorage
+    const savedFontSize = localStorage.getItem('userFontSize');
+    if (savedFontSize) {
+      setFontSize(savedFontSize);
+      applyFontSize(savedFontSize);
+    } else {
+      applyFontSize('medium');
+    }
+  }, []);
 
   const changeFontSize = (size) => {
     setFontSize(size);
